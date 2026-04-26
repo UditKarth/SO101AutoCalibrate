@@ -108,7 +108,8 @@ def run(robot: SOFollower, args) -> None:
     # Warm up the model on the GPU
     model.predict(source="assets/dummy.jpg", verbose=False) if False else None
 
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
+    cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
@@ -190,9 +191,12 @@ def main():
     robot = SOFollower(config)
 
     print(f"Connecting to SO101 on {args.port}...")
-    with robot:
+    try:
+        robot.connect(calibrate=False)
         time.sleep(0.5)
         run(robot, args)
+    finally:
+        robot.disconnect()
 
 
 if __name__ == "__main__":
